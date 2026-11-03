@@ -97,6 +97,10 @@ class HTTPClient:
                     if requested > 300:
                         raise NetworkError("retry_after_deferred", transient=True) from None
                     delay = max(delay, requested)
+            except NetworkError as exc:
+                if observer:
+                    observer(exc.code, None)
+                raise
             except (
                 URLError,
                 TimeoutError,

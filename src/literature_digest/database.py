@@ -83,22 +83,6 @@ class Database:
         keys = identities(paper, feed_id, source_id)
         stamp = now()
         with self.conn:
-            candidate = None
-            for key in keys:
-                row = self.conn.execute(
-                    """SELECT a.* FROM articles a JOIN identities i
-                    ON a.id=i.article_id WHERE i.key=?""",
-                    (key,),
-                ).fetchone()
-                if row is None:
-                    continue
-                if paper.get("doi") and row["doi"] and paper["doi"] != row["doi"]:
-                    continue
-                if paper.get("pmid") and row["pmid"] and paper["pmid"] != row["pmid"]:
-                    continue
-                candidate = row
-                break
-            is_new = candidate is None
             fields = [
                 "title",
                 "authors",
@@ -110,6 +94,47 @@ class Database:
                 "url",
                 "abstract",
             ]
+            candidates = {}
+            known_doi, known_pmid = paper.get("doi", ""), paper.get("pmid", "")
+            for key in keys:
+                row = self.conn.execute(
+                    """SELECT a.* FROM articles a JOIN identities i
+                    ON a.id=i.article_id WHERE i.key=?""",
+                    (key,),
+                ).fetchone()
+                if row is None:
+                    continue
+                if known_doi and row["doi"] and known_doi != row["doi"]:
+                    continue
+                if known_pmid and row["pmid"] and known_pmid != row["pmid"]:
+                    continue
+                known_doi = known_doi or row["doi"]
+                known_pmid = known_pmid or row["pmid"]
+                candidates[row["id"]] = row
+            candidate = None
+            if candidates:
+                # Later DOI enrichment can bridge previously disconnected feed entries.
+                # Keep the oldest completed article and its GUID; reuse its editorial text.
+                candidate = dict(
+                    min(candidates.values(), key=lambda r: (r["status"] != "completed", r["id"]))
+                )
+                for other in candidates.values():
+                    if other["id"] == candidate["id"]:
+                        continue
+                    for field in fields:
+                        if not candidate[field] and other[field]:
+                            candidate[field] = other[field]
+                            self.conn.execute(
+                                f"UPDATE articles SET {field}=? WHERE id=?",
+                                (other[field], candidate["id"]),
+                            )
+                    for table in ["entries", "identities", "api_calls"]:
+                        self.conn.execute(
+                            f"UPDATE {table} SET article_id=? WHERE article_id=?",
+                            (candidate["id"], other["id"]),
+                        )
+                    self.conn.execute("DELETE FROM articles WHERE id=?", (other["id"],))
+            is_new = candidate is None
             if is_new:
                 cur = self.conn.execute(
                     f"INSERT INTO articles(guid,{','.join(fields)},fetched_at,updated_at) "
@@ -131,7 +156,9 @@ class Database:
                             f"UPDATE articles SET {field}=?,updated_at=? WHERE id=?",
                             (paper[field], stamp, article_id),
                         )
-                if paper.get("abstract") and candidate["status"] == "skipped":
+                if (paper.get("abstract") or candidate["abstract"]) and candidate[
+                    "status"
+                ] == "skipped":
                     self.conn.execute(
                         "UPDATE articles SET status='pending',error=NULL WHERE id=?", (article_id,)
                     )

@@ -126,3 +126,49 @@ def test_feed_failure_isolated(db):
 
 def test_doi_url_query_is_not_identifier():
     assert normalize_doi("https://doi.org/10.1234/ABC?utm_source=rss#top") == "10.1234/abc"
+
+
+def test_later_doi_bridges_entries_preserving_completed_guid(db, paper):
+    early, _ = db.ingest({**paper, "doi": "", "doi_raw": ""}, "a", "early")
+    db.update(early, status="completed", title_ja="早期の記事", body_ja="保存する本文")
+    guid = db.conn.execute("SELECT guid FROM articles WHERE id=?", (early,)).fetchone()[0]
+    later, _ = db.ingest(
+        {**paper, "url": "https://example.org/version", "published": "2026-11-03T00:00:00+00:00"},
+        "b",
+        "later",
+    )
+    assert early != later
+    db.api_call(later, "sarashina3-mini", "completed", {"total_tokens": 10})
+    assert db.ingest(paper, "a", "early") == (early, False)
+    assert db.conn.execute("SELECT count(*) FROM articles").fetchone()[0] == 1
+    row = db.conn.execute("SELECT * FROM articles").fetchone()
+    assert row["guid"] == guid and row["title_ja"] == "早期の記事"
+    assert row["doi"] == paper["doi"]
+    assert (
+        db.conn.execute("SELECT count(*) FROM entries WHERE article_id=?", (early,)).fetchone()[0]
+        == 2
+    )
+    assert db.conn.execute("SELECT article_id FROM api_calls").fetchone()[0] == early
+    assert db.ingest(
+        {**paper, "url": "https://example.org/version", "published": "2026-11-03T00:00:00+00:00"},
+        "b",
+        "later",
+    ) == (
+        early,
+        False,
+    )
+
+
+def test_conflicting_candidates_are_never_bridged(db, paper):
+    first, _ = db.ingest(paper, "a", "first")
+    second, _ = db.ingest(
+        {**paper, "doi": "10.1234/other", "url": "https://example.org/other"}, "b", "second"
+    )
+    db.ingest({**paper, "doi": "10.1234/other"}, "a", "first")
+    assert db.conn.execute("SELECT count(*) FROM articles").fetchone()[0] == 2
+    assert first != second
+
+
+def test_arxiv_explicit_doi():
+    data = b'<feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom"><title>arXiv</title><entry><id>http://arxiv.org/abs/1234.5678</id><title>Study</title><arxiv:doi>10.1234/ABC</arxiv:doi></entry></feed>'
+    assert parse_feed(data)[0][1]["doi"] == "10.1234/abc"

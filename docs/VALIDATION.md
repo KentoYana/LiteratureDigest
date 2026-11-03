@@ -7,3 +7,14 @@
 既存pyenv 3.12.13は、見つからないHomebrew OpenSSL 3の動的ライブラリに依存していたため、HTTPSを使う配布試験にはHomebrew Python 3.14の専用仮想環境を使用。既存pyenvやシステムのライブラリは変更していません。
 
 未検証を成功扱いにしない項目：本番Sarashina API認証・実生成、実際の異なるバージョン間brew upgrade、Intel実機、スリープ復帰・翌朝8時の自動実行。追加の実行結果は下に記録します。
+
+## ローカル実機検証
+
+- Apple Silicon / macOS上のHomebrew Python 3.14でpytest **73件成功**。ruff成功。
+- 実在するローカルsdistから`brew install --build-from-source`成功。`brew test`と`brew audit`成功。FormulaのRuby構文検査成功。
+- APIキーなしでCLI起動、initの冪等性、同梱テンプレート、DB保持、RSS出力、doctor --offlineを確認。
+- 独自home・ポート18080でバッチ/HTTPのLaunchAgentを実際にinstall/start/statusし、launchctl kickstartでバッチを実行。未処理0件でAPI呼び出し0回。
+- 実プロセスの待受が`127.0.0.1:18080`だけであることをlsofで確認。doctorのHTTP検査もok。
+- テスト用LaunchAgentはstop/uninstallし、登録解除済み。データは`.local/e2e`に保持。
+- Sarashina本番キーは環境変数・キーチェーンともに未設定。実APIでの認証・記事生成は未検証。
+- NetNewsWireは起動を確認したが、既存アカウント設定ダイアログが開かれていたため、その操作を妨げず購読・本文の目視確認は未実施。RSS XMLとlocalhost HTTPの試験は成功。

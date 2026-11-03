@@ -62,7 +62,11 @@ def parse_feed(body):
             ),
             entry.get("link", ""),
         )
-        doi_raw = entry.get("prism_doi", "") or entry.get("dc_identifier", "")
+        doi_raw = (
+            entry.get("prism_doi", "")
+            or entry.get("arxiv_doi", "")
+            or entry.get("dc_identifier", "")
+        )
         identifiers = [doi_raw, entry.get("id", ""), url]
         identifiers += [x.get("value", "") for x in entry.get("identifiers", [])]
         identifiers += [x.get("href", "") for x in links]
