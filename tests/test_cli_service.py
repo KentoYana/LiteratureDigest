@@ -147,3 +147,11 @@ def test_prompt_copy_is_explicit_and_idempotent(paths):
     (paths.config / "digest.md").write_text("custom instructions")
     assert initialize(paths, copy_prompt=True) == []
     assert (paths.config / "digest.md").read_text() == "custom instructions"
+
+
+def test_service_recovery_does_not_require_valid_config(paths):
+    (paths.config / "settings.yaml").write_text("broken: [invalid yaml")
+    for action in ["stop", "status", "uninstall"]:
+        with patch("literature_digest.cli.manage", return_value={"http": "stopped"}) as manage:
+            assert main(["--home", str(paths.root), "service", action]) == 0
+            assert manage.call_args.args[0] == action

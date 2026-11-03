@@ -3,6 +3,7 @@
 import argparse
 import json
 import sqlite3
+import subprocess
 import sys
 import time
 
@@ -137,10 +138,11 @@ def execute(args):
         finally:
             conn.close()
         return 0
-    settings = load_settings(paths)
     if args.command == "service":
+        settings = load_settings(paths) if args.action == "install" else {}
         emit(manage(args.action, paths, settings, args.target, args.binary))
         return 0
+    settings = load_settings(paths)
     if args.command == "serve":
         server = make_server(paths.feed, settings["server"]["port"], settings["server"]["host"])
         try:
@@ -188,7 +190,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         print("処理を中断しました。未完了記事は次回に回収します。", file=sys.stderr)
         return 130
-    except (OSError, ValueError, sqlite3.Error) as exc:
+    except (OSError, ValueError, sqlite3.Error, subprocess.SubprocessError) as exc:
         # External exceptions may embed credentials or source data. Only our local ValueErrors are descriptive.
         message = (
             str(exc)

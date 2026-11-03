@@ -15,7 +15,7 @@ literature-digest init
 
 初期フィード一覧は空です。READMEに従い購読先とAPIキーを設定し、手動実行後にサービスを明示的に開始してください。brew installだけでは自動起動しません。
 
-ローカルでpytest 73件、brew install/audit/test、実機LaunchAgent起動、localhost待受、パッケージrevisionのbrew upgradeとアンインストール後のデータ保持を確認しました。macOS/Linux × Python 3.11/3.14のCIとmacOSパッケージングCIを用意しています。
+ローカルでpytest 74件、brew install/audit/test、実機LaunchAgent起動、localhost待受、パッケージrevisionのbrew upgradeとアンインストール後のデータ保持を確認しました。macOS/Linux × Python 3.11/3.14のCIとmacOSパッケージングCIを用意しています。
 
 本番Sarashina APIキーによる実生成、NetNewsWireでの購読と本文の目視確認、翌朝の定刻実行・スリープ復帰、Intel実機、異なるアプリ版間のアップグレードは未検証です。全完成条件の実機確認が済んだとは扱いません。
 

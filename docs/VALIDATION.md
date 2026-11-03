@@ -10,7 +10,7 @@
 
 ## ローカル実機検証
 
-- Apple Silicon / macOS上のHomebrew Python 3.14でpytest **73件成功**。ruff成功。
+- Apple Silicon / macOS上のHomebrew Python 3.14でpytest **74件成功**。ruff成功。
 - 実在するローカルsdistから`brew install --build-from-source`成功。`brew test`と`brew audit`成功。FormulaのRuby構文検査成功。
 - APIキーなしでCLI起動、initの冪等性、同梱テンプレート、DB保持、RSS出力、doctor --offlineを確認。
 - 独自home・ポート18080でバッチ/HTTPのLaunchAgentを実際にinstall/start/statusし、launchctl kickstartでバッチを実行。未処理0件でAPI呼び出し0回。
@@ -23,3 +23,5 @@
 - ローカル試験Formulaのrevisionを上げ、実際の`brew upgrade`（1.0.0→1.0.0_1）成功。設定2ファイル・記事DB・RSSのSHA-256が全て一致。
 - `brew uninstall`と残存旧版Cellarの削除後も上記SHA-256が全て一致。異なるアプリリリース間・将来のスキーマ移行を伴うupgradeは未検証。
 - 最初のGitHub ActionsではmacOS/Linux × Python 3.11/3.14の4構成、wheelの別環境インストール、macOS Homebrewインストール・audit・test・reinstall/uninstall保持確認が全て成功。最新ソースの結果はActionsで確認する。
+
+- 設定ファイルが壊れていてもservice stop/status/uninstallで復旧できることを追加テスト。最新のローカルテストは74件成功。
