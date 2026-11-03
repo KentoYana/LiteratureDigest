@@ -1,0 +1,42 @@
+class LiteratureDigest < Formula
+  include Language::Python::Virtualenv
+
+  desc "Turn science RSS feeds into concise Japanese news with Sarashina"
+  homepage "https://github.com/KentoYana/LiteratureDigest"
+  url "@URL@"
+  sha256 "@SHA256@"
+  license "MIT"
+
+  depends_on "libyaml"
+  depends_on :macos
+  depends_on "python@3.14"
+
+@RESOURCES@
+  def install
+    virtualenv_install_with_resources(system_site_packages: false)
+    pkgshare.install "scripts/package_smoke.py"
+  end
+
+  def caveats
+    <<~EOS
+      Initialize user-owned configuration (existing files are kept):
+        literature-digest init
+      Configure feeds and an API key using the README:
+        https://github.com/KentoYana/LiteratureDigest#初期設定とapiキー
+      Start local processing and serving explicitly:
+        literature-digest run
+        literature-digest service install
+        literature-digest service start
+      NetNewsWire feed: http://127.0.0.1:8080/feed.xml
+      Upgrade and uninstall retain configuration, articles, logs and Keychain items.
+      Before uninstalling, remove LaunchAgents with:
+        literature-digest service uninstall
+    EOS
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/literature-digest --version")
+    system libexec/"bin/python", pkgshare/"package_smoke.py",
+           "--command", bin/"literature-digest", "--workdir", testpath/"smoke"
+  end
+end

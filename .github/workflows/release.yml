@@ -1,0 +1,69 @@
+name: Release
+on:
+  push:
+    tags: ['v[0-9]*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install -e '.[dev]'
+      - name: Validate version and tests
+        run: |
+          python -c 'import os; from literature_digest import __version__; assert os.environ["GITHUB_REF_NAME"] == "v" + __version__'
+          ruff check src tests scripts
+          pytest -q
+          python -m build
+      - name: Publish fixed release artifacts
+        shell: bash
+        run: |
+          shasum -a 256 dist/* > dist/SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "LiteratureDigest $GITHUB_REF_NAME" --generate-notes
+      - name: Render verified Tap Formula
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          python scripts/render_formula.py --archive "dist/literature_digest-$version.tar.gz" --url "https://github.com/${{ github.repository }}/releases/download/$GITHUB_REF_NAME/literature_digest-$version.tar.gz" --output packaging/homebrew/literature-digest.rb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: homebrew-formula
+          path: packaging/homebrew/literature-digest.rb
+      - name: Checkout Tap when scoped token is configured
+        if: ${{ env.TAP_TOKEN != '' }}
+        uses: actions/checkout@v4
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        with:
+          repository: KentoYana/homebrew-tap
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
+          path: tap
+      - name: Update Tap and verify install
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        if: ${{ env.TAP_TOKEN != '' }}
+        shell: bash
+        run: |
+          mkdir -p tap/Formula
+          cp packaging/homebrew/literature-digest.rb tap/Formula/literature-digest.rb
+          git -C tap config user.name github-actions[bot]
+          git -C tap config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git -C tap add Formula/literature-digest.rb
+          git -C tap commit -m "literature-digest $GITHUB_REF_NAME"
+          git -C tap push
+          brew tap KentoYana/tap
+          brew install --build-from-source KentoYana/tap/literature-digest
+          brew test KentoYana/tap/literature-digest
+          brew audit KentoYana/tap/literature-digest
+      - name: Explain manual Tap handoff
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        if: ${{ env.TAP_TOKEN == '' }}
+        run: echo 'Release published. Download homebrew-formula artifact and follow docs/RELEASING.md to update the Tap. TAP_GITHUB_TOKEN is optional and limited to the Tap repository.'

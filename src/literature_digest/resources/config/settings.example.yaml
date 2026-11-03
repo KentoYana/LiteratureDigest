@@ -1,0 +1,23 @@
+llm:
+  model: sarashina3-mini
+  temperature: 0.2
+  max_completion_tokens: 700
+  timeout: 60
+  retries: 3
+  # 1回のgenerate/runの上限。失敗記事は次回に再試行する。
+  batch_limit: 20
+metadata:
+  pubmed: true
+  # NCBIへの連絡先（推奨）。APIキーはここに書かない。
+  email: ""
+publisher:
+  title: LiteratureDigest
+  description: 科学論文の新着を日本語で紹介
+  limit: 100
+server:
+  host: 127.0.0.1
+  port: 8080
+schedule:
+  weekdays: [1, 2, 3, 4, 5]
+  hour: 8
+  minute: 0

@@ -1,0 +1,4 @@
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Updates</title><id>urn:feed:1</id><updated>2026-11-02T09:00:00Z</updated>
+<entry><title>Atom paper</title><id>https://doi.org/10.1234/ABC</id><updated>2026-11-02T09:00:00Z</updated>
+<link rel="alternate" href="https://example.org/paper" type="text/html"/>
+<author><name>Alice</name></author><summary type="html">&lt;p&gt;Atom abstract.&lt;/p&gt;</summary></entry></feed>

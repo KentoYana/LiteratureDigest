@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:prism="http://prismstandard.org/namespaces/basic/2.0/">
+<channel><title>Journal updates</title><link>https://example.org</link><description>News</description>
+<item><title>Original &amp; title</title><link>https://example.org/paper</link><guid>paper-1</guid>
+<dc:creator>Alice</dc:creator><prism:doi>https://doi.org/10.1234/ABC</prism:doi>
+<prism:publicationName>Actual Journal</prism:publicationName>
+<pubDate>Mon, 02 Nov 2026 09:00:00 GMT</pubDate><description>&lt;p&gt;An abstract &amp;amp; results.&lt;/p&gt;</description></item>
+<item><title>No abstract</title><guid>paper-2</guid><link>https://pubmed.ncbi.nlm.nih.gov/12345678/</link></item>
+</channel></rss>

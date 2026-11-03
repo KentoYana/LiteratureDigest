@@ -1,0 +1,61 @@
+name: Test and package
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-15]
+        python: ['3.11', '3.14']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -e '.[dev]'
+      - run: ruff check src tests scripts
+      - run: pytest -q
+      - run: python -m build
+      - name: Test installed wheel away from source tree
+        shell: bash
+        run: |
+          python -m venv /tmp/ld-wheel
+          /tmp/ld-wheel/bin/python -m pip install dist/*.whl
+          /tmp/ld-wheel/bin/python scripts/package_smoke.py --command /tmp/ld-wheel/bin/literature-digest --workdir /tmp/ld-smoke
+  homebrew:
+    runs-on: macos-15
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install build
+      - run: python -m build --sdist
+      - name: Local Formula installation, audit and retention
+        shell: bash
+        run: |
+          brew tap-new local/literature-digest-ci
+          tap_path="$(brew --repository local/literature-digest-ci)"
+          python scripts/render_formula.py --archive dist/literature_digest-1.0.0.tar.gz --output "$tap_path/Formula/literature-digest.rb"
+          ruby -c "$tap_path/Formula/literature-digest.rb"
+          brew install --build-from-source local/literature-digest-ci/literature-digest
+          brew test local/literature-digest-ci/literature-digest
+          brew audit local/literature-digest-ci/literature-digest
+          export LITERATURE_DIGEST_HOME="$RUNNER_TEMP/ld-retention"
+          literature-digest init
+          printf '\n# retained\n' >> "$LITERATURE_DIGEST_HOME/config/feeds.yaml"
+          literature-digest publish
+          shasum -a 256 "$LITERATURE_DIGEST_HOME/config/feeds.yaml" "$LITERATURE_DIGEST_HOME/data/literature.db" "$LITERATURE_DIGEST_HOME/public/feed.xml" > "$RUNNER_TEMP/before.sha"
+          brew reinstall --build-from-source local/literature-digest-ci/literature-digest
+          shasum -a 256 -c "$RUNNER_TEMP/before.sha"
+          literature-digest doctor --offline
+          brew uninstall literature-digest
+          shasum -a 256 -c "$RUNNER_TEMP/before.sha"

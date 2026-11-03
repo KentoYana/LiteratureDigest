@@ -1,0 +1,8 @@
+# URLと名前は利用するフィードの公式案内で確認してください。
+# feeds:
+#   - id: my-journal
+#     name: My Journal
+#     url: https://example.org/feed.xml
+#     enabled: true
+#     category: biology
+feeds: []

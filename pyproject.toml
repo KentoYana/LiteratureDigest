@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "literature-digest"
+version = "1.0.0"
+description = "Local Japanese science news from RSS and Sarashina"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{name = "KentoYana"}]
+dependencies = ["feedparser==6.0.14", "PyYAML==6.0.3", "defusedxml==0.7.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "build>=1.2", "ruff>=0.11"]
+
+[project.scripts]
+literature-digest = "literature_digest.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+literature_digest = ["resources/config/*.yaml", "resources/prompts/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
