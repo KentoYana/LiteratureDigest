@@ -25,3 +25,21 @@
 - 最初のGitHub ActionsではmacOS/Linux × Python 3.11/3.14の4構成、wheelの別環境インストール、macOS Homebrewインストール・audit・test・reinstall/uninstall保持確認が全て成功。最新ソースの結果はActionsで確認する。
 
 - 設定ファイルが壊れていてもservice stop/status/uninstallで復旧できることを追加テスト。最新のローカルテストは74件成功。
+
+## 公開済み配布物
+
+- アプリタグ：`v1.0.0`（実装コミット `8cf9dcd7f2a50917b8ab532e1cc4f91a9f1fca98`）。
+- [GitHub Release](https://github.com/KentoYana/LiteratureDigest/releases/tag/v1.0.0) を公開済み。sdist、wheel、SHA256SUMSを配布。
+- sdist SHA-256：`45dde31fae3f4981e2f1b8a2b06e0fbb9f9d06533119fb28089a1a42bca275fc`。公開assetを取得して実測し、GitHub公表digestと一致。
+- [Release Actions](https://github.com/KentoYana/LiteratureDigest/actions/runs/41653610936) 成功。JSON SchemaやAPIクライアントもモックで検証した74件を実行。生成Formulaとローカル再生成Formulaが完全一致。
+- [アプリCI](https://github.com/KentoYana/LiteratureDigest/actions/runs/41653579346) は最終実装で全5ジョブ成功。macOS/Linux × Python 3.11/3.14、wheel別環境導入、macOS Homebrewインストール・audit・test・再インストール/削除時保持。
+- Tap `KentoYana/homebrew-tap`の`0a7b80822e711812ce755d5b564bd9edccd96b7c`へFormula・README・専用macOS workflowを反映済み。他のFormulaは変更していない。
+- 実機で公開先の`brew install --build-from-source KentoYana/tap/literature-digest`が成功。ローカルfile URLではなく、GitHub Releaseの固定アーカイブを使用。
+- クロスリポジトリ自動更新用の`TAP_GITHUB_TOKEN`は未設定。初回Tap反映には既存gh認証を使用した。次回以降は同Secretを設定するか、生成Formulaを公開手順に従って手動で反映する。
+
+本番キー・購読先のユーザー設定とNetNewsWireでの目視確認は残るため、すべての完成条件を実機で検証済みとは扱わない。
+
+- 公開Tap版で`brew test`、`brew audit`、`--version`、`init --copy-prompt`、`doctor --offline`が成功。既存テストDBの記事がそのまま読め、設定・DB・RSSの全ハッシュも一致。
+- Tap CIの初回はHomebrew 7の信頼登録要件によりauditで失敗。Tap全体ではなく対象Formulaだけを信頼する工程を追加した`5c9f0e103cffa5e75ee1e88401fe537fbdd4209d`で修正。
+- [修正後Tap CI](https://github.com/KentoYana/homebrew-tap/actions/runs/41654578144)の全工程が成功。実際の公開アーカイブでaudit・install・brew test・CLI・doctorを検証。
+- 不要になった試験Tapは登録解除。実機には公開TapのLiteratureDigest 1.0.0をインストールした状態で残し、定期実行・HTTPサービスは登録していない。標準ユーザーディレクトリの初期設定は利用者の`init`で行う。

@@ -12,7 +12,7 @@ literature-digest init
 
 PythonはFormulaが専用仮想環境へ導入します。利用者のpyenv・pip操作は不要です。Apple SiliconとIntelのHomebrew prefixを自動判定します。インストールだけでは収集もHTTP配信も開始しません。
 
-公開・試験の実施状況は [検証記録](docs/VALIDATION.md) を参照してください。ReleaseとTapが公開される前は、上のコマンドは利用できません。[公開手順](docs/RELEASING.md)で「準備済み」と「公開済み」を区別します。
+v1.0.0は [GitHub Release](https://github.com/KentoYana/LiteratureDigest/releases/tag/v1.0.0) と [Homebrew Tap](https://github.com/KentoYana/homebrew-tap/blob/main/Formula/literature-digest.rb) で公開済みです。実施済み試験と、本番API・NetNewsWireなどの未検証項目は [検証記録](docs/VALIDATION.md) を参照してください。
 
 ## 初期設定とAPIキー
 
