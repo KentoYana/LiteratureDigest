@@ -18,3 +18,8 @@
 - テスト用LaunchAgentはstop/uninstallし、登録解除済み。データは`.local/e2e`に保持。
 - Sarashina本番キーは環境変数・キーチェーンともに未設定。実APIでの認証・記事生成は未検証。
 - NetNewsWireは起動を確認したが、既存アカウント設定ダイアログが開かれていたため、その操作を妨げず購読・本文の目視確認は未実施。RSS XMLとlocalhost HTTPの試験は成功。
+
+- 公式Nature RSSの実フィードから2件を収集し、原題・DOI・抄録を取得。再収集は新着0件・重複2件、API呼び出し0回。
+- ローカル試験Formulaのrevisionを上げ、実際の`brew upgrade`（1.0.0→1.0.0_1）成功。設定2ファイル・記事DB・RSSのSHA-256が全て一致。
+- `brew uninstall`と残存旧版Cellarの削除後も上記SHA-256が全て一致。異なるアプリリリース間・将来のスキーマ移行を伴うupgradeは未検証。
+- 最初のGitHub ActionsではmacOS/Linux × Python 3.11/3.14の4構成、wheelの別環境インストール、macOS Homebrewインストール・audit・test・reinstall/uninstall保持確認が全て成功。最新ソースの結果はActionsで確認する。

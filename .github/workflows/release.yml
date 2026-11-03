@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           shasum -a 256 dist/* > dist/SHA256SUMS
-          gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "LiteratureDigest $GITHUB_REF_NAME" --generate-notes
+          gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "LiteratureDigest $GITHUB_REF_NAME" --notes-file docs/RELEASE_NOTES.md
       - name: Render verified Tap Formula
         shell: bash
         run: |
